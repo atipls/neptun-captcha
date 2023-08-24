@@ -13,26 +13,35 @@
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js
 // ==/UserScript==
 
-const trueCaptchaUserId = "{{toBeReplaced}}";
-const trueCaptchaApiKey = "{{toBeReplaced}}";
-
 const $ = window.jQuery;
-(function() {
+(async function() {
     'use strict';
+
+    const trueCaptchaUserId = await GM.getValue("trueCaptchaUserId", "");
+    const trueCaptchaApiKey = await GM.getValue("trueCaptchaApiKey", "");
+
+    if (trueCaptchaUserId === "" || trueCaptchaApiKey === "") {
+        const userId = prompt("TrueCaptcha User ID");
+        const apiKey = prompt("TrueCaptcha API Key");
+        await GM.setValue("trueCaptchaUserId", userId);
+        await GM.setValue("trueCaptchaApiKey", apiKey);
+
+        location.reload();
+    }
 
     $("#loginCaptcha img").on("load", function() {
         const canvas = document.createElement("canvas");
         canvas.width = this.naturalWidth;
         canvas.height = this.naturalHeight;
-    
+
         const context = canvas.getContext("2d");
-    
+
         context.drawImage(this, 0, 0);
-    
+
         const base64ImageData = canvas.toDataURL("image/png");
         const captchaApiImageData = base64ImageData.replace(/^data:image\/(png|jpg|jpeg|gif);base64,/, "");
         console.log(captchaApiImageData);
-    
+
         fetch("https://api.apitruecaptcha.org/one/gettext", {
             method: "post",
             body: JSON.stringify({
